@@ -1,0 +1,89 @@
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+local cam = workspace.CurrentCamera
+local uis = game:GetService("UserInputService")
+
+local idleAnim = char:WaitForChild("Humanoid"):LoadAnimation(script:WaitForChild("FlyIdle"))
+local forwardAnim = char:WaitForChild("Humanoid"):LoadAnimation(script:WaitForChild("FlyForward"))
+
+
+local wPressed = false
+local sPressed = false
+local aPressed = false
+local dPressed = false
+
+local flying = false
+uis.InputBegan:Connect(function(key, chat)
+	if chat then return end
+	if key.KeyCode == Enum.KeyCode.F then
+		if flying then --Stop Flying
+			flying = false
+			char.Animate.Disabled = false
+			idleAnim:Stop()
+			forwardAnim:Stop()
+			
+		else --Start Flying
+			flying = true
+			
+			char.Animate.Disabled = true
+			idleAnim:Play()
+			
+			local bv = Instance.new("BodyVelocity", char.PrimaryPart)
+			bv.MaxForce = Vector3.new(math.huge,math.huge,math.huge)
+			bv.Velocity = Vector3.new(0,0,0)
+			bv.Name = "FlightForce"
+			
+			repeat wait(0.1) until flying == false
+			bv:Destroy()
+		end
+	end
+	
+	if key.KeyCode == Enum.KeyCode.W then
+		wPressed = true
+	elseif key.KeyCode == Enum.KeyCode.S then
+		sPressed = true
+	elseif key.KeyCode == Enum.KeyCode.A then
+		aPressed = true
+	elseif key.KeyCode == Enum.KeyCode.D then
+		dPressed = true
+	end
+end)
+
+uis.InputEnded:Connect(function(key)	
+	if key.KeyCode == Enum.KeyCode.W then
+		wPressed = false
+	elseif key.KeyCode == Enum.KeyCode.S then
+		sPressed = false
+	elseif key.KeyCode == Enum.KeyCode.A then
+		aPressed = false
+	elseif key.KeyCode == Enum.KeyCode.D then
+		dPressed = false
+	end
+end)
+
+while wait() do
+	if flying then
+		char.PrimaryPart:FindFirstChild("FlightForce").Velocity = Vector3.new(0,0,0)
+		forwardAnim:Stop()
+		
+		if wPressed then
+			char.PrimaryPart:FindFirstChild("FlightForce").Velocity = cam.CFrame.LookVector * 100
+			forwardAnim:Play()
+		end
+		if sPressed then
+			char.PrimaryPart:FindFirstChild("FlightForce").Velocity = cam.CFrame.LookVector * -100
+			forwardAnim:Play()
+		end
+		if aPressed then
+			char.PrimaryPart:FindFirstChild("FlightForce").Velocity = cam.CFrame.RightVector * -100
+			forwardAnim:Play()
+		end
+		if dPressed then
+			char.PrimaryPart:FindFirstChild("FlightForce").Velocity = cam.CFrame.RightVector * 100
+			forwardAnim:Play()
+		end
+	else
+		wait(1)
+	end
+end
